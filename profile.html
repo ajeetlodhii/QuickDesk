@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - QuickDesk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .profile-container { max-width: 800px; margin: 40px auto; background: white; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .profile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .profile-title { font-size: 24px; font-weight: bold; }
+        .profile-nav button { padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 8px; }
+        .profile-nav button:hover { background: #4f46e5; }
+        .profile-content { display: flex; flex-direction: column; } /* Changed to column for photo first */
+        .profile-section { margin-bottom: 32px; }
+        .profile-section h2 { font-size: 18px; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+        .profile-row { display: flex; align-items: center; margin-bottom: 16px; }
+        .profile-row label { width: 150px; font-weight: 500; }
+        .profile-row input, .profile-row select { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        .profile-row input[readonly] { background: #f3f4f6; }
+        .upgrade-btn { margin-left: 8px; padding: 8px 16px; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .upgrade-btn:hover { background: #16a34a; }
+        .toggle-btn { padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; display: inline-block; } /* Styled as button */
+        .toggle-btn:hover { background: #4f46e5; }
+        .hidden { display: none; }
+        .profile-image-section { text-align: center; margin-bottom: 32px; } /* Spacing for first position */
+        .profile-image img { border-radius: 50%; width: 150px; height: 150px; object-fit: cover; border: 2px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; }
+        #profile-photo { display: none; }
+        #photo-upload-label { display: inline-block; padding: 8px 16px; background: #6366f1; color: white; border-radius: 4px; cursor: pointer; }
+        #photo-upload-label:hover { background: #4f46e5; }
+        #save-btn { margin-top: 16px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #save-btn:hover { background: #4f46e5; }
+        #notification { position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000; display: none; }
+        #notification.success { background-color: #4CAF50; }
+        #notification.error { background-color: #f44336; }
+    </style>
+</head>
+<body>
+
+    <div id="notification"></div>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <div>
+                <span class="profile-title">Profile</span>
+            </div>
+            <div class="profile-nav">
+                <button class="dashboard-btn" onclick="window.location.href='tickets.html'">My Tickets</button>
+                <button class="admin-btn" onclick="alert('Admin panel coming soon!')">Admin</button>
+                <button id="logout-btn" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="profile-content">
+            <!-- Profile Photo Section (Moved to First) -->
+            <div class="profile-section profile-image-section">
+                <h2>Profile Photo</h2>
+                <div class="profile-image">
+                    <img id="profile-img" src="https://ui-avatars.com/api/?name=User&background=222&color=fff&size=90" alt="Profile Image" />
+                </div>
+                <label id="photo-upload-label" for="profile-photo">Upload New Photo</label>
+                <input id="profile-photo" type="file" accept="image/*">
+            </div>
+
+            <!-- Personal Information Section -->
+            <div class="profile-section">
+                <h2>Personal Information</h2>
+                <div class="profile-row">
+                    <label>Name:</label>
+                    <input id="profile-name" type="text" placeholder="Enter Your Name"/>
+                </div>
+                <div class="profile-row">
+                    <label>Role:</label>
+                    <input id="profile-role" type="text" readonly />
+                    <button class="upgrade-btn" id="upgradeBtn" style="display: none;">Upgrade</button>
+                </div>
+                <div class="profile-row">
+                    <label>Category In Interest:</label>
+                    <input id="profile-category" type="text" placeholder="Enter Your Category In Interest"/>
+                </div>
+                <div class="profile-row">
+                    <label>Change Language:</label>
+                    <select id="profile-language">
+                        <option>English</option>
+                        <option>Hindi</option>
+                        <option>Spanish</option>
+                        <option>French</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div class="profile-section">
+                <h2>Security</h2>
+                <button class="toggle-btn" id="toggle-password">Change Password</button>
+                <div id="password-fields" class="hidden">
+                    <div class="profile-row">
+                        <label>Current Password:</label>
+                        <input id="current-password" type="password" placeholder="Enter current password"/>
+                    </div>
+                    <div class="profile-row">
+                        <label>New Password:</label>
+                        <input id="new-password" type="password" placeholder="Enter new password (min 6 chars)"/>
+                    </div>
+                    <div class="profile-row">
+                        <label>Confirm New Password:</label>
+                        <input id="confirm-new-password" type="password" placeholder="Confirm new password"/>
+                    </div>
+                </div>
+            </div>
+
+            <button id="save-btn">Save Changes</button>
+        </div>
+    </div>
+
+    <script>
+        // Notification Function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = type;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Check if logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+
+        // Load User Data
+        const user = JSON.parse(localStorage.getItem('user')) || { name: '', role: 'End User', category: '', language: 'English', photo: '' };
+        document.getElementById('profile-name').value = user.name;
+        document.getElementById('profile-role').value = user.role;
+        document.getElementById('profile-category').value = user.category;
+        document.getElementById('profile-language').value = user.language;
+
+        // Load Profile Image (uploaded photo or avatar)
+        const profileImg = document.getElementById('profile-img');
+        if (user.photo) {
+            profileImg.src = user.photo;
+        } else {
+            profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=222&color=fff&size=150`;
+        }
+
+        // Show Upgrade Button if End User
+        const upgradeBtn = document.getElementById('upgradeBtn');
+        if (user.role === 'End User') {
+            upgradeBtn.style.display = 'inline-block';
+            upgradeBtn.addEventListener('click', () => {
+                user.role = 'Admin';
+                localStorage.setItem('user', JSON.stringify(user));
+                document.getElementById('profile-role').value = 'Admin';
+                upgradeBtn.style.display = 'none';
+                showNotification('Role upgraded to Admin!');
+            });
+        }
+
+        // Toggle Password Fields
+        document.getElementById('toggle-password').addEventListener('click', () => {
+            const passwordFields = document.getElementById('password-fields');
+            passwordFields.classList.toggle('hidden');
+        });
+
+        // Handle Profile Photo Upload (Preview)
+        const photoInput = document.getElementById('profile-photo');
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    user.photo = event.target.result; // Temporary store for preview
+                    profileImg.src = user.photo;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Save Changes (Handles all fields including password and photo)
+        document.getElementById('save-btn').addEventListener('click', () => {
+            const newName = document.getElementById('profile-name').value;
+            const newCategory = document.getElementById('profile-category').value;
+            const newLanguage = document.getElementById('profile-language').value;
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+
+            // Update basic fields
+            user.name = newName;
+            user.category = newCategory;
+            user.language = newLanguage;
+
+            // Handle Password Change (only if fields are visible and filled)
+            if (!document.getElementById('password-fields').classList.contains('hidden') && (currentPassword || newPassword || confirmNewPassword)) {
+                if (!currentPassword || currentPassword !== user.password) {
+                    showNotification('Current password is incorrect!', 'error');
+                    return;
+                }
+                if (newPassword !== confirmNewPassword) {
+                    showNotification('New passwords do not match!', 'error');
+                    return;
+                }
+                if (newPassword.length < 6) {
+                    showNotification('New password must be at least 6 characters!', 'error');
+                    return;
+                }
+                user.password = newPassword;
+                showNotification('Password changed successfully!');
+            }
+
+            // Update Image (if changed, else fallback to avatar)
+            if (!user.photo) {
+                profileImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=222&color=fff&size=150`;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('user', JSON.stringify(user));
+            showNotification('Profile updated successfully!');
+        });
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            showNotification('Logged out successfully!');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+        });
+    </script>
+</body>
+</html>

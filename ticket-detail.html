@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Detail - QuickDesk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #notification { position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000; display: none; }
+        #notification.success { background-color: #4CAF50; }
+        #notification.error { background-color: #f44336; }
+        /* Chat Section Styles */
+        #chat-section { margin-top: 24px; }
+        #chat-messages { display: flex; flex-direction: column; gap: 16px; }
+        .chat-message { background: #f3f4f6; padding: 12px; border-radius: 8px; position: relative; }
+        .chat-message-header { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+        .chat-reply { margin-left: 24px; border-left: 2px solid #6366f1; padding-left: 12px; font-size: 1.1rem; } /* Indented and larger text for replies */
+        .chat-reply-input { display: flex; margin-top: 8px; display: none; } /* Hidden by default */
+        .reply-text { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        .reply-send { margin-left: 8px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .reply-send:hover { background: #4f46e5; }
+        .reply-btn { font-size: 12px; color: #6366f1; cursor: pointer; margin-left: 8px; }
+        .reaction { cursor: pointer; margin-left: 8px; font-size: 12px; }
+        #start-discussion-btn { padding: 8px 16px; background: #22c55e; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 16px; }
+        #start-discussion-btn:hover { background: #16a34a; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div id="notification"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Brand Name -->
+                <div class="flex-shrink-0">
+                    <a href="tickets.html" class="text-2xl font-bold text-gray-900">QuickDesk</a>
+                </div>
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="tickets.html" class="text-sm text-gray-600 hover:text-indigo-600">My Tickets</a>
+                    <a href="create-ticket.html" class="text-sm text-gray-600 hover:text-indigo-600">Create Ticket</a>
+                    <a href="profile.html" class="text-sm text-gray-600 hover:text-indigo-600">Profile</a>
+                </div>
+                <!-- User Info and Logout -->
+                <div class="flex items-center">
+                    <span id="welcome-message" class="text-sm text-gray-600 mr-4">Welcome!</span>
+                    <button id="logout-btn" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="py-10">
+        <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">
+                Ticket Details
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">View the full details of your support ticket.</p>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+            <div id="ticket-detail-container" class="bg-white p-8 rounded-lg shadow-md">
+                <!-- Ticket details will be dynamically loaded here -->
+            </div>
+
+            <!-- Chat Section for Questions/Replies -->
+            <div id="chat-section" class="bg-white p-8 rounded-lg shadow-md mt-8">
+                <h2 class="text-2xl font-bold mb-4">Discussion</h2>
+                <div id="chat-messages">
+                    <!-- Messages will be dynamically loaded here -->
+                </div>
+                <div id="main-reply-input" class="chat-reply-input" style="display: none;">
+                    <input id="chat-reply-text" type="text" placeholder="Type your reply...">
+                    <button id="chat-reply-send">Send</button>
+                </div>
+                <button id="start-discussion-btn" style="display: none;">Start Discussion</button>
+            </div>
+
+            <div class="mt-4">
+                <a href="tickets.html" class="text-indigo-600 hover:text-indigo-900">Back to My Tickets</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Notification Function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = type;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Check if logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+
+        // Load User Data
+        const user = JSON.parse(localStorage.getItem('user')) || {};
+        document.getElementById('welcome-message').textContent = `Welcome, ${user.name || 'User'} (${user.email || ''})!`;
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            showNotification('Logged out successfully!');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+        });
+
+        // Get Ticket ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const ticketId = urlParams.get('id');
+
+        // Load and Display Ticket Details
+        let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+        let ticket = tickets.find(t => t.id === ticketId);
+
+        const container = document.getElementById('ticket-detail-container');
+        if (ticket) {
+            const statusColor = {
+                Resolved: 'bg-green-100 text-green-800',
+                'In Progress': 'bg-blue-100 text-blue-800',
+                Open: 'bg-yellow-100 text-yellow-800',
+                Closed: 'bg-gray-100 text-gray-800'
+            }[ticket.status];
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div><strong>Ticket ID:</strong> ${ticket.id}</div>
+                    <div><strong>Subject:</strong> ${ticket.subject}</div>
+                    <div><strong>Category:</strong> ${ticket.category}</div>
+                    <div><strong>Status:</strong> <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">${ticket.status}</span></div>
+                    <div><strong>Last Updated:</strong> ${ticket.updated}</div>
+                    <div><strong>Replies:</strong> ${ticket.replies || 0}</div>
+                    <div><strong>Description:</strong> <p>${ticket.description || 'No description provided.'}</p></div>
+                </div>
+            `;
+
+            // Initialize Discussion if not exist
+            if (!ticket.discussion) {
+                ticket.discussion = [];
+            }
+
+            // Render Discussion Messages with Nested Replies
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            if (ticket.discussion.length === 0) {
+                chatMessages.innerHTML = '<p>There are no answers yet. Be the first to answer this question.</p>';
+                document.getElementById('start-discussion-btn').style.display = 'block';
+                document.getElementById('main-reply-input').style.display = 'none';
+            } else {
+                renderDiscussion(ticket.discussion, chatMessages);
+                document.getElementById('start-discussion-btn').style.display = 'none';
+                document.getElementById('main-reply-input').style.display = 'flex';
+            }
+
+            // Start Discussion Button
+            document.getElementById('start-discussion-btn').addEventListener('click', () => {
+                document.getElementById('main-reply-input').style.display = 'flex';
+                document.getElementById('start-discussion-btn').style.display = 'none';
+                chatMessages.innerHTML = ''; // Clear message if starting
+            });
+
+            // Handle Sending Main Reply (at bottom)
+            const replyText = document.getElementById('chat-reply-text');
+            const replySend = document.getElementById('chat-reply-send');
+            replySend.addEventListener('click', () => sendReply(null)); // null for main level
+            replyText.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendReply(null);
+            });
+
+            // Function to Render Discussion (Recursive for Nesting)
+            function renderDiscussion(messages, parentElement, level = 0) {
+                messages.forEach((msg, index) => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.classList.add('chat-message');
+                    if (level > 0) {
+                        msgDiv.classList.add('chat-reply');
+                    }
+                    msgDiv.innerHTML = `
+                        <div class="chat-message-header">
+                            <span>${msg.user}</span>
+                            <span>${msg.timestamp}</span>
+                        </div>
+                        <p>${msg.text}</p>
+                        <span class="reaction" data-ticket-id="${ticketId}" data-msg-path="${level}-${index}">👍 ${msg.likes || 0}</span>
+                        <span class="reply-btn">Reply</span>
+                        <div class="chat-reply-input">
+                            <input class="reply-text" type="text" placeholder="Reply to this message...">
+                            <button class="reply-send">Send</button>
+                        </div>
+                    `;
+                    parentElement.appendChild(msgDiv);
+
+                    // Render Nested Replies
+                    if (msg.replies && msg.replies.length > 0) {
+                        const repliesContainer = document.createElement('div');
+                        repliesContainer.classList.add('nested-replies');
+                        msgDiv.appendChild(repliesContainer);
+                        renderDiscussion(msg.replies, repliesContainer, level + 1);
+                    }
+                });
+            }
+
+            // Function to Send Reply (to main or specific message)
+            function sendReply(parentPath) {
+                const input = parentPath ? chatMessages.querySelector(`[data-msg-path="${parentPath}"]`).parentElement.querySelector('.reply-text') : replyText;
+                const text = input.value.trim();
+                if (text) {
+                    const newMsg = {
+                        user: user.name || 'User',
+                        text,
+                        timestamp: new Date().toLocaleString(),
+                        likes: 0,
+                        replies: []
+                    };
+
+                    if (parentPath === null) {
+                        // Main level reply
+                        ticket.discussion.push(newMsg);
+                    } else {
+                        // Nested reply
+                        const pathParts = parentPath.split('-').map(Number);
+                        let current = ticket.discussion;
+                        pathParts.forEach((idx, lvl) => {
+                            if (lvl === pathParts.length - 1) {
+                                if (!current[idx].replies) current[idx].replies = [];
+                                current[idx].replies.push(newMsg);
+                            } else {
+                                current = current[idx].replies;
+                            }
+                        });
+                    }
+
+                    ticket.replies = (ticket.replies || 0) + 1;
+                    ticket.updated = 'Just now';
+
+                    // Update localStorage
+                    tickets = tickets.map(t => t.id === ticketId ? ticket : t);
+                    localStorage.setItem('tickets', JSON.stringify(tickets));
+
+                    // Re-render messages
+                    chatMessages.innerHTML = '';
+                    renderDiscussion(ticket.discussion, chatMessages);
+                    input.value = '';
+                    showNotification('Reply posted successfully!', 'success');
+                }
+            }
+
+            // Event Delegation for Reply Buttons and Send
+            chatMessages.addEventListener('click', (e) => {
+                if (e.target.classList.contains('reply-btn')) {
+                    const replyInput = e.target.nextElementSibling;
+                    replyInput.style.display = replyInput.style.display === 'flex' ? 'none' : 'flex';
+                } else if (e.target.classList.contains('reply-send')) {
+                    const path = e.target.closest('.chat-message').querySelector('.reaction').dataset.msgPath;
+                    sendReply(path);
+                } else if (e.target.classList.contains('reaction')) {
+                    let count = parseInt(e.target.textContent.split(' ')[1]) || 0;
+                    count++;
+                    e.target.textContent = `👍 ${count}`;
+
+                    // Update likes in data
+                    const pathParts = e.target.dataset.msgPath.split('-').map(Number);
+                    let current = ticket.discussion;
+                    pathParts.forEach((idx) => {
+                        current = current[idx];
+                    });
+                    current.likes = count;
+                    localStorage.setItem('tickets', JSON.stringify(tickets));
+                    showNotification('Reaction added!', 'success');
+                }
+            });
+        } else {
+            container.innerHTML = '<p class="text-red-500">Ticket not found!</p>';
+        }
+    </script>
+</body>
+</html>

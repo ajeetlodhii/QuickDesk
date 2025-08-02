@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Ticket - QuickDesk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .focus-ring-indigo { --tw-ring-opacity: 1; --tw-ring-color: rgb(79 70 229 / var(--tw-ring-opacity)); }
+        #notification { position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000; display: none; }
+        #notification.success { background-color: #4CAF50; }
+        #notification.error { background-color: #f44336; }
+        /* Chat Styles */
+        #chat-button { position: fixed; bottom: 20px; right: 20px; background: #6366f1; color: white; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 999; }
+        #chat-button:hover { background: #4f46e5; }
+        #chat-window { position: fixed; bottom: 80px; right: 20px; width: 320px; height: 400px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000; }
+        #chat-header { background: #6366f1; color: white; padding: 12px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        #chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .message { padding: 8px 12px; border-radius: 8px; max-width: 80%; }
+        .user-message { background: #e5e7eb; align-self: flex-end; }
+        .bot-message { background: #6366f1; color: white; align-self: flex-start; }
+        .timestamp { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+        #chat-input-area { display: flex; padding: 12px; border-top: 1px solid #e5e7eb; }
+        #chat-input { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        #chat-send { margin-left: 8px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #chat-send:hover { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div id="notification"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Brand Name -->
+                <div class="flex-shrink-0">
+                    <a href="tickets.html" class="text-2xl font-bold text-gray-900">QuickDesk</a>
+                </div>
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="tickets.html" class="text-sm text-gray-600 hover:text-indigo-600">My Tickets</a>
+                    <a href="profile.html" class="text-sm text-gray-600 hover:text-indigo-600">Profile</a>
+                </div>
+                <!-- User Info and Logout -->
+                <div class="flex items-center">
+                    
+                    <a href="dashboard.html" class="text-sm text-gray-600 hover:text-indigo-600 mr-4">Dashboard</a>
+                    <button id="logout-btn" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <div class="py-10">
+        <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-3xl font-bold leading-tight text-gray-900">
+                Create a New Support Ticket
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">Fill out the form below and our support team will get back to you.</p>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <form id="create-ticket-form" class="space-y-6">
+                    
+                    <!-- Subject Field -->
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
+                        <div class="mt-1">
+                            <input type="text" name="subject" id="subject" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="e.g., Cannot reset my password" required>
+                        </div>
+                    </div>
+
+                    <!-- Category Dropdown -->
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                        <div class="mt-1">
+                            <select id="category" name="category" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                                <option value="" disabled selected>Please select a category</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Billing & Payments">Billing & Payments</option>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Feedback & Suggestions">Feedback & Suggestions</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Description Textarea -->
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <div class="mt-1">
+                            <textarea id="description" name="description" rows="6" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Please describe your issue in detail..." required></textarea>
+                        </div>
+                        <p class="mt-2 text-xs text-gray-500">The more detail you provide, the faster we can help resolve your issue.</p>
+                    </div>
+
+                    <!-- File Attachment (optional, not handled) -->
+                    <div>
+                        <label for="attachment" class="block text-sm font-medium text-gray-700">Attachment (Optional)</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-ring-indigo">
+                                        <span>Upload a file</span>
+                                        <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end space-x-4">
+                         <button type="button" onclick="window.location.href='tickets.html'" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </button>
+                        <button type="submit" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            POST
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Chat Button -->
+    <div id="chat-button" title="Chat with AI Support">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+
+    <!-- AI Chat Window -->
+    <div id="chat-window">
+        <div id="chat-header">
+            <span>AI Support Bot</span>
+            <button id="chat-close" style="background: none; border: none; color: white; cursor: pointer;">&times;</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input id="chat-input" type="text" placeholder="Type your question...">
+            <button id="chat-send">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Notification Function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = type;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Check if logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+
+        // Load User Data
+        const user = JSON.parse(localStorage.getItem('user')) || {};
+        document.getElementById('welcome-message').textContent = `Welcome, ${user.name || 'User'} (${user.email || ''})!`;
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            showNotification('Logged out successfully!');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+        });
+
+        // Form Submit (Updated to store description and replies:0)
+        document.getElementById('create-ticket-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const subject = document.getElementById('subject').value;
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value;
+            const newTicket = {
+                id: `#${Math.floor(Math.random() * 10000)}`,
+                subject,
+                category,
+                status: 'Open',
+                updated: 'Just now',
+                description,
+                replies: 0
+            };
+            let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+            tickets.push(newTicket);
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+            showNotification('Ticket created successfully!');
+            setTimeout(() => { window.location.href = 'tickets.html'; }, 1000);
+        });
+
+        // AI Chat Functionality
+        const chatButton = document.getElementById('chat-button');
+        const chatWindow = document.getElementById('chat-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatClose = document.getElementById('chat-close');
+
+        // Toggle Chat Window
+        chatButton.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+            if (chatMessages.innerHTML === '') {
+                addMessage('bot', 'Hello! I\'m the AI Support Bot. How can I help you create a ticket?');
+            }
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+
+        // Send Message
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                chatInput.value = '';
+                setTimeout(() => {
+                    const response = getBotResponse(message);
+                    addMessage('bot', response);
+                }, 500); // Simulated delay
+            }
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Add Message to Chat
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.textContent = text;
+            const timestamp = document.createElement('div');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageDiv.appendChild(timestamp);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Simple Rule-Based Bot Responses (Adapted for Create Ticket Page)
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('hi') || lowerMessage.includes('hello')) {
+                return 'Hello! How can I assist you with creating a ticket?';
+            } else if (lowerMessage.includes('create') || lowerMessage.includes('new ticket')) {
+                return 'Fill in the subject, select a category, add a description, and click "POST". You can also attach files if needed.';
+            } else if (lowerMessage.includes('category') || lowerMessage.includes('select category')) {
+                return 'Choose a category like "Technical Support" or "Billing & Payments" 

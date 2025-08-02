@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tickets - QuickDesk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #notification { position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000; display: none; }
+        #notification.success { background-color: #4CAF50; }
+        #notification.error { background-color: #f44336; }
+        /* Chat Styles (unchanged) */
+        #chat-button { position: fixed; bottom: 20px; right: 20px; background: #6366f1; color: white; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 999; }
+        #chat-button:hover { background: #4f46e5; }
+        #chat-window { position: fixed; bottom: 80px; right: 20px; width: 320px; height: 400px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000; }
+        #chat-header { background: #6366f1; color: white; padding: 12px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        #chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .message { padding: 8px 12px; border-radius: 8px; max-width: 80%; }
+        .user-message { background: #e5e7eb; align-self: flex-end; }
+        .bot-message { background: #6366f1; color: white; align-self: flex-start; }
+        .timestamp { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+        #chat-input-area { display: flex; padding: 12px; border-top: 1px solid #e5e7eb; }
+        #chat-input { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        #chat-send { margin-left: 8px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #chat-send:hover { background: #4f46e5; }
+        /* Notification Center Styles */
+        #notification-bell { position: relative; cursor: pointer; margin-right: 16px; }
+        #notification-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; display: none; }
+        #notification-panel { position: absolute; top: 60px; right: 20px; width: 320px; max-height: 400px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000; overflow-y: auto; }
+        #notification-panel-header { background: #6366f1; color: white; padding: 12px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .notification-item { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        .notification-item.unread { font-weight: bold; color: #ef4444; }
+        .notification-item.read { color: #6b7280; }
+        .notification-actions { padding: 12px; display: flex; justify-content: space-between; }
+        .notification-actions button { padding: 4px 8px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .notification-actions button:hover { background: #4f46e5; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div id="notification"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Brand Name -->
+                <div class="flex-shrink-0">
+                    <a href="tickets.html" class="text-2xl font-bold text-gray-900">QuickDesk</a>
+                </div>
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="create-ticket.html" class="text-sm text-gray-600 hover:text-indigo-600">Create Ticket</a>
+                    <a href="profile.html" class="text-sm text-gray-600 hover:text-indigo-600">Profile</a>
+                </div>
+                <!-- Notifications and Logout -->
+                <div class="flex items-center">
+                    <div id="notification-bell">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15 10a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path>
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                        </svg>
+                        <span id="notification-badge">0</span>
+                    </div>
+                    <a href="dashboard.html" class="text-sm text-gray-600 hover:text-indigo-600 mr-4">Dashboard</a>
+                    <button id="logout-btn" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notification Panel -->
+    <div id="notification-panel">
+        <div id="notification-panel-header">
+            <span>Notifications</span>
+            <button id="notification-close" style="background: none; border: none; color: white; cursor: pointer;">&times;</button>
+        </div>
+        <div id="notification-list"></div>
+        <div class="notification-actions">
+            <button id="mark-all-read">Mark All as Read</button>
+            <button id="clear-all">Clear All</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area (unchanged) -->
+    <div class="py-10">
+        <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-3xl font-bold leading-tight text-gray-900">
+                        My Support Tickets
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">View, track, and manage your support requests.</p>
+                </div>
+                <div class="mt-4 flex md:mt-0 md:ml-4">
+                    <a href="create-ticket.html" class="w-full inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
+                        Create New Ticket
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+            <!-- Filters and Search Bar -->
+            <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Search Input -->
+                    <div class="md:col-span-2">
+                        <label for="search" class="sr-only">Search</label>
+                        <input type="text" name="search" id="search" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Search by subject or ticket ID...">
+                    </div>
+                    <!-- Filter by Status -->
+                    <div>
+                        <label for="status-filter" class="sr-only">Filter by Status</label>
+                        <select id="status-filter" name="status-filter" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option>All Statuses</option>
+                            <option>Open</option>
+                            <option>In Progress</option>
+                            <option>Resolved</option>
+                            <option>Closed</option>
+                        </select>
+                    </div>
+                    <!-- Sort By -->
+                    <div>
+                        <label for="sort-by" class="sr-only">Sort by</label>
+                        <select id="sort-by" name="sort-by" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                            <option>Sort by: Recently Modified</option>
+                            <option>Sort by: Most Replied</option>
+                            <option>Sort by: Oldest</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tickets Table -->
+            <div class="flex flex-col">
+                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                                        <th scope="col" class="relative px-6 py-3">
+                                            <span class="sr-only">View</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tickets-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Tickets will be dynamically loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- AI Chat Button -->
+    <div id="chat-button" title="Chat with AI Support">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+
+    <!-- AI Chat Window -->
+    <div id="chat-window">
+        <div id="chat-header">
+            <span>AI Support Bot</span>
+            <button id="chat-close" style="background: none; border: none; color: white; cursor: pointer;">&times;</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input id="chat-input" type="text" placeholder="Type your question...">
+            <button id="chat-send">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Notification Function (for flash messages)
+        function showFlashNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = type;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Check if logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            showFlashNotification('Logged out successfully!');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+        });
+
+        // Load Tickets from localStorage (initialize with samples if empty, added description and replies)
+        let allTickets = JSON.parse(localStorage.getItem('tickets')) || [
+            { id: '#8923', subject: 'Cannot reset my password', category: 'Technical Support', status: 'Resolved', updated: '2 days ago', description: 'I forgot my password and the reset link isn\'t working.', replies: 3 },
+            { id: '#8922', subject: 'Question about recent invoice', category: 'Billing & Payments', status: 'In Progress', updated: '5 hours ago', description: 'There is an error in my last invoice amount.', replies: 2 },
+            { id: '#8921', subject: 'Feature request for dashboard', category: 'Feedback & Suggestions', status: 'Open', updated: '10 minutes ago', description: 'Please add dark mode to the dashboard.', replies: 0 },
+            { id: '#8915', subject: 'Login issue from last week', category: 'Technical Support', status: 'Closed', updated: '1 week ago', description: 'I was unable to login due to server error.', replies: 5 }
+        ];
+        localStorage.setItem('tickets', JSON.stringify(allTickets));
+
+        // Function to render tickets
+        function renderTickets(tickets) {
+            const ticketsBody = document.getElementById('tickets-body');
+            ticketsBody.innerHTML = '';
+            tickets.forEach(ticket => {
+                const statusColor = {
+                    Resolved: 'bg-green-100 text-green-800',
+                    'In Progress': 'bg-blue-100 text-blue-800',
+                    Open: 'bg-yellow-100 text-yellow-800',
+                    Closed: 'bg-gray-100 text-gray-800'
+                }[ticket.status];
+                ticketsBody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${ticket.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${ticket.subject}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${ticket.category}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                                ${ticket.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${ticket.updated}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="ticket-detail.html?id=${encodeURIComponent(ticket.id)}" class="text-indigo-600 hover:text-indigo-900">View</a>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Function to filter and sort tickets
+        function applyFilters() {
+            let filteredTickets = [...allTickets];
+
+            // Search Filter
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            if (searchTerm) {
+                filteredTickets = filteredTickets.filter(ticket => 
+                    ticket.subject.toLowerCase().includes(searchTerm) || ticket.id.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Status Filter
+            const statusFilter = document.getElementById('status-filter').value;
+            if (statusFilter !== 'All Statuses') {
+                filteredTickets = filteredTickets.filter(ticket => ticket.status === statusFilter);
+            }
+
+            // Sort By
+            const sortBy = document.getElementById('sort-by').value;
+            if (sortBy === 'Sort by: Recently Modified') {
+                filteredTickets.sort((a, b) => parseTime(b.updated) - parseTime(a.updated));
+            } else if (sortBy === 'Sort by: Most Replied') {
+                filteredTickets.sort((a, b) => (b.replies || 0) - (a.replies || 0));
+            } else if (sortBy === 'Sort by: Oldest') {
+                filteredTickets.sort((a, b) => parseTime(a.updated) - parseTime(b.updated));
+            }
+
+            renderTickets(filteredTickets);
+        }
+
+        // Helper to parse updated time (approximate)
+        function parseTime(timeStr) {
+            if (timeStr === 'Just now') return Date.now();
+            if (timeStr.includes('minutes ago')) return Date.now() - parseInt(timeStr) * 60000;
+            if (timeStr.includes('hours ago')) return Date.now() - parseInt(timeStr) * 3600000;
+            if (timeStr.includes('days ago')) return Date.now() - parseInt(timeStr) * 86400000;
+            if (timeStr.includes('week ago')) return Date.now() - parseInt(timeStr) * 604800000;
+            return 0; // Fallback
+        }
+
+        // Event Listeners for Filters
+        document.getElementById('search').addEventListener('keyup', applyFilters);
+        document.getElementById('status-filter').addEventListener('change', applyFilters);
+        document.getElementById('sort-by').addEventListener('change', applyFilters);
+
+        // Initial Render
+        applyFilters();
+
+        // AI Chat Functionality (unchanged from previous)
+        const chatButton = document.getElementById('chat-button');
+        const chatWindow = document.getElementById('chat-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatClose = document.getElementById('chat-close');
+
+        // Toggle Chat Window
+        chatButton.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+            if (chatMessages.innerHTML === '') {
+                addMessage('bot', 'Hello! I\'m the AI Support Bot. How can I help you with your tickets?');
+            }
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+
+        // Send Message
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                chatInput.value = '';
+                setTimeout(() => {
+                    const response = getBotResponse(message);
+                    addMessage('bot', response);
+                }, 500); // Simulated delay
+            }
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Add Message to Chat
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.textContent = text;
+            const timestamp = document.createElement('div');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageDiv.appendChild(timestamp);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Simple Rule-Based Bot Responses
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('hi') || lowerMessage.includes('hello')) {
+                return 'Hello! How can I assist you today?';
+            } else if (lowerMessage.includes('create') || lowerMessage.includes('new ticket')) {
+                return 'To create a new ticket, click the "Create New Ticket" button at the top of the page and fill out the form.';
+            } else if (lowerMessage.includes('status') || lowerMessage.includes('filter')) {
+                return 'You can filter tickets by status using the dropdown in the filters section. Select "Open", "In Progress", etc.';
+            } else if (lowerMessage.includes('search') || lowerMessage.includes('find ticket')) {
+                return 'Use the search bar to find tickets by subject or ID. Just type and it will filter automatically.';
+            } else if (lowerMessage.includes('sort') || lowerMessage.includes('order')) {
+                return 'Sort tickets using the "Sort by" dropdown: Recently Modified, Most Replied, or Oldest.';
+            } else if (lowerMessage.includes('view') || lowerMessage.includes('detail')) {
+                return 'Click "View" next to a ticket to see its full details, including description.';
+            } else if (lowerMessage.includes('help') || lowerMessage.includes('support')) {
+                return 'I can help with ticket management. Ask about creating tickets, searching, filtering, or viewing details!';
+            } else {
+                return 'Sorry, I didn\'t understand that. Try asking about tickets, like "how to create a ticket" or "filter by status".';
+            }
+        }
+
+        // Notification Center Functionality
+        const notificationBell = document.getElementById('notification-bell');
+        const notificationBadge = document.getElementById('notification-badge');
+        const notificationPanel = document.getElementById('notification-panel');
+        const notificationList = document.getElementById('notification-list');
+        const markAllRead = document.getElementById('mark-all-read');
+        const clearAll = document.getElementById('clear-all');
+        const notificationClose = document.getElementById('notification-close');
+
+        // Load Notifications from localStorage
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+
+        // Function to add a notification
+        function addNotification(message) {
+            const newNotif = {
+                id: Date.now(),
+                message,
+                timestamp: new Date().toLocaleString(),
+                read: false
+            };
+            notifications.unshift(newNotif); // Add to front
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationPanel();
+            updateBadge();
+        }
+
+        // Function to render notifications in panel
+        function renderNotifications() {
+            notificationList.innerHTML = '';
+            notifications.forEach(notif => {
+                const notifDiv = document.createElement('div');
+                notifDiv.classList.add('notification-item', notif.read ? 'read' : 'unread');
+                notifDiv.innerHTML = `
+                    <p>${notif.message}</p>
+                    <small>${notif.timestamp}</small>
+                    <button class="mark-read" data-id="${notif.id}" style="font-size: 12px; color: #6366f1; background: none; border: none; cursor: pointer;">Mark as Read</button>
+                `;
+                notificationList.appendChild(notifDiv);
+            });
+        }
+
+        // Update Panel and Badge
+        function updateNotificationPanel() {
+            renderNotifications();
+        }
+
+        function updateBadge() {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            notificationBadge.textContent = unreadCount;
+            notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        }
+
+        // Toggle Panel
+        notificationBell.addEventListener('click', () => {
+            notificationPanel.style.display = notificationPanel.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        notificationClose.addEventListener('click', () => {
+            notificationPanel.style.display = 'none';
+        });
+
+        // Mark All as Read
+        markAllRead.addEventListener('click', () => {
+            notifications = notifications.map(n => ({ ...n, read: true }));
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationPanel();
+            updateBadge();
+        });
+
+        // Clear All
+        clearAll.addEventListener('click', () => {
+            notifications = [];
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationPanel();
+            updateBadge();
+        });
+
+        // Mark Individual as Read
+        notificationList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mark-read')) {
+                const id = parseInt(e.target.dataset.id);
+                notifications = notifications.map(n => n.id === id ? { ...n, read: true } : n);
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+                updateNotificationPanel();
+                updateBadge();
+            }
+        });
+
+        // Initial Setup
+        updateNotificationPanel();
+        updateBadge();
+
+        // Add Welcome Notification on Load (if none)
+        if (notifications.length === 0) {
+            addNotification('Welcome back! Check your tickets.');
+        }
+
+        // Check for New Ticket from URL Param
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('new') === 'ticket') {
+            addNotification('New ticket created successfully!');
+        }
+
+        // Simulated Periodic Updates (e.g., every 10 seconds for demo)
+        setInterval(() => {
+            const randomTicket = allTickets[Math.floor(Math.random() * allTickets.length)];
+            addNotification(`Ticket ${randomTicket.id} status updated to ${randomTicket.status}.`);
+        }, 10000); // Adjust or remove in production
+    </script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign Up - QuickDesk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .form-container { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        #notification { position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000; display: none; }
+        #notification.success { background-color: #4CAF50; }
+        #notification.error { background-color: #f44336; }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+    <div id="notification"></div> <!-- Notification Container -->
+
+    <div class="w-full max-w-md p-8 space-y-8 bg-white rounded-2xl shadow-lg">
+
+        <!-- Header -->
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-900">QuickDesk</h1>
+            <p id="form-title" class="mt-2 text-sm text-gray-600">Welcome back! Please sign in to your account.</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm" class="form-container">
+            <form id="login-form" class="mt-8 space-y-6">
+                <input type="hidden" name="remember" value="true">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="login-email-address" class="sr-only">Email address</label>
+                        <input id="login-email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email address">
+                    </div>
+                    <div>
+                        <label for="login-password" class="sr-only">Password</label>
+                        <input id="login-password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="text-sm">
+                        <a href="#" id="forgot-password-link" class="font-medium text-indigo-600 hover:text-indigo-500">
+                            Forgot your password?
+                        </a>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+            <p class="mt-6 text-center text-sm text-gray-600">
+                Don't have an account?
+                <a href="#" id="showSignUp" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    Sign up
+                </a>
+            </p>
+        </div>
+
+        <!-- Forgot Password Form (Initially Hidden) -->
+        <div id="forgotPasswordForm" class="form-container hidden opacity-0">
+            <form id="forgot-form" class="mt-8 space-y-6">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="forgot-email" class="sr-only">Email address</label>
+                        <input id="forgot-email" name="email" type="email" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Enter your email to reset password">
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Reset Password
+                    </button>
+                </div>
+            </form>
+            <p class="mt-6 text-center text-sm text-gray-600">
+                <a href="#" id="backToLogin" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    Back to Sign in
+                </a>
+            </p>
+        </div>
+
+        <!-- Sign Up Form (Initially Hidden) -->
+        <div id="signupForm" class="form-container hidden opacity-0">
+            <form id="signup-form" class="mt-8 space-y-6">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="signup-name" class="sr-only">Full Name</label>
+                        <input id="signup-name" name="name" type="text" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Full Name">
+                    </div>
+                    <div>
+                        <label for="signup-email-address" class="sr-only">Email address</label>
+                        <input id="signup-email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Email address">
+                    </div>
+                    <div>
+                        <label for="signup-password" class="sr-only">Password</label>
+                        <input id="signup-password" name="password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Password">
+                    </div>
+                     <div>
+                        <label for="signup-confirm-password" class="sr-only">Confirm Password</label>
+                        <input id="signup-confirm-password" name="confirm-password" type="password" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Confirm Password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Create Account
+                    </button>
+                </div>
+            </form>
+            <p class="mt-6 text-center text-sm text-gray-600">
+                Already have an account?
+                <a href="#" id="showLogin" class="font-medium text-indigo-600 hover:text-indigo-500">
+                    Sign in
+                </a>
+            </p>
+        </div>
+
+        <!-- OTP Verification Form (Initially Hidden) -->
+        <div id="otpForm" class="form-container hidden opacity-0">
+            <form id="otp-form" class="mt-8 space-y-6">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="otp-input" class="sr-only">OTP</label>
+                        <input id="otp-input" name="otp" type="text" required class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" placeholder="Enter the 4-digit OTP sent to your email">
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Verify OTP
+                    </button>
+                </div>
+            </form>
+            <p class="mt-6 text-center text-sm text-gray-600">
+                Didn't receive OTP? <a href="#" id="resend-otp" class="font-medium text-indigo-600 hover:text-indigo-500">Resend</a><br>
+                <a href="#" id="backToSignup" class="font-medium text-indigo-600 hover:text-indigo-500">Back to Sign Up</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Notification Function
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = type;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Form Switch Function
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const forgotForm = document.getElementById('forgotPasswordForm');
+        const otpForm = document.getElementById('otpForm');
+        const showSignUpLink = document.getElementById('showSignUp');
+        const showLoginLink = document.getElementById('showLogin');
+        const forgotLink = document.getElementById('forgot-password-link');
+        const backToLoginLink = document.getElementById('backToLogin');
+        const backToSignupLink = document.getElementById('backToSignup');
+        const resendOtpLink = document.getElementById('resend-otp');
+        const formTitle = document.getElementById('form-title');
+
+        function switchForm(formToShow, formToHide, titleText) {
+            formToHide.classList.add('opacity-0');
+            formToHide.classList.add('scale-95');
+            setTimeout(() => {
+                formToHide.classList.add('hidden');
+                formToShow.classList.remove('hidden');
+                formTitle.textContent = titleText;
+                setTimeout(() => {
+                    formToShow.classList.remove('opacity-0');
+                    formToShow.classList.remove('scale-95');
+                }, 20);
+            }, 300);
+        }
+
+        showSignUpLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchForm(signupForm, loginForm, 'Create a new account to get started.');
+        });
+
+        showLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchForm(loginForm, signupForm, 'Welcome back! Please sign in to your account.');
+        });
+
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchForm(forgotForm, loginForm, 'Reset your password');
+        });
+
+        backToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchForm(loginForm, forgotForm, 'Welcome back! Please sign in to your account.');
+        });
+
+        backToSignupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchForm(signupForm, otpForm, 'Create a new account to get started.');
+        });
+
+        loginForm.classList.add('transform', 'scale-100');
+        signupForm.classList.add('transform', 'scale-95');
+        forgotForm.classList.add('transform', 'scale-95');
+        otpForm.classList.add('transform', 'scale-95');
+
+        // Login Form Submit (unchanged)
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email-address').value;
+            const password = document.getElementById('login-password').value;
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            if (storedUser && storedUser.email === email && storedUser.password === password) {
+                localStorage.setItem('isLoggedIn', 'true');
+                showNotification('Login successful!');
+                setTimeout(() => { window.location.href = 'tickets.html'; }, 1000);
+            } else {
+                showNotification('Invalid credentials!', 'error');
+            }
+        });
+
+        // Forgot Password Submit (unchanged)
+        document.getElementById('forgot-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            if (storedUser && storedUser.email === email) {
+                showNotification('Reset link sent to your email!', 'success');
+                setTimeout(() => {
+                    switchForm(loginForm, forgotForm, 'Welcome back! Please sign in to your account.');
+                }, 2000);
+            } else {
+                showNotification('Email not found!', 'error');
+            }
+        });
+
+        // Signup Form Submit with OTP
+        let generatedOTP = '';
+        let pendingUser = null; // Temporarily store user data during OTP verification
+
+        function generateOTP() {
+            generatedOTP = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit OTP
+            alert(`Your OTP is: ${generatedOTP} (Simulated - Check console or email in real app)`); // Simulate sending OTP
+            showNotification('OTP sent to your email!');
+        }
+
+        document.getElementById('signup-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email-address').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match!', 'error');
+                return;
+            }
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            if (storedUser && storedUser.email === email) {
+                showNotification('User already exists! Please login.', 'error');
+                return;
+            }
+            pendingUser = { name, email, password, role: 'End User', category: '', language: 'English' };
+            generateOTP();
+            switchForm(otpForm, signupForm, 'Verify OTP');
+        });
+
+        // OTP Form Submit
+        document.getElementById('otp-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredOTP = document.getElementById('otp-input').value;
+            if (enteredOTP === generatedOTP) {
+                localStorage.setItem('user', JSON.stringify(pendingUser));
+                localStorage.setItem('isLoggedIn', 'true');
+                showNotification('Signup successful! OTP verified.');
+                setTimeout(() => { window.location.href = 'tickets.html'; }, 1000);
+            } else {
+                showNotification('Invalid OTP! Please try again.', 'error');
+            }
+        });
+
+        // Resend OTP
+        resendOtpLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            generateOTP();
+        });
+    </script>
+</body>
+</html>

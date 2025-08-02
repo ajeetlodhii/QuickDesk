@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - QuickDesk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles to apply the Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7fafc; /* A light gray background */
+        }
+        /* Notification Center Styles (from previous) */
+        #notification-bell { position: relative; cursor: pointer; margin-right: 16px; }
+        #notification-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; display: none; }
+        #notification-panel { position: absolute; top: 60px; right: 20px; width: 320px; max-height: 400px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000; overflow-y: auto; }
+        #notification-panel-header { background: #6366f1; color: white; padding: 12px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .notification-item { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+        .notification-item.unread { font-weight: bold; color: #ef4444; }
+        .notification-item.read { color: #6b7280; }
+        .notification-actions { padding: 12px; display: flex; justify-content: space-between; }
+        .notification-actions button { padding: 4px 8px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .notification-actions button:hover { background: #4f46e5; }
+        /* Chat Styles (from previous) */
+        #chat-button { position: fixed; bottom: 20px; right: 20px; background: #6366f1; color: white; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 999; }
+        #chat-button:hover { background: #4f46e5; }
+        #chat-window { position: fixed; bottom: 80px; right: 20px; width: 320px; height: 400px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; flex-direction: column; z-index: 1000; }
+        #chat-header { background: #6366f1; color: white; padding: 12px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        #chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .message { padding: 8px 12px; border-radius: 8px; max-width: 80%; }
+        .user-message { background: #e5e7eb; align-self: flex-end; }
+        .bot-message { background: #6366f1; color: white; align-self: flex-start; }
+        .timestamp { font-size: 10px; color: #9ca3af; margin-top: 4px; }
+        #chat-input-area { display: flex; padding: 12px; border-top: 1px solid #e5e7eb; }
+        #chat-input { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+        #chat-send { margin-left: 8px; padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #chat-send:hover { background: #4f46e5; }
+    </style>
+</head>
+<body>
+
+    <div id="notification"></div>
+
+    <!-- Navigation Bar (Integrated with QuickDesk) -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Brand Name -->
+                <div class="flex-shrink-0">
+                    <a href="dashboard.html" class="text-2xl font-bold text-gray-900">QuickDesk</a>
+                </div>
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    <a href="tickets.html" class="text-sm text-gray-600 hover:text-indigo-600">My Tickets</a>
+                    <a href="create-ticket.html" class="text-sm text-gray-600 hover:text-indigo-600">Create Ticket</a>
+                    <a href="profile.html" class="text-sm text-gray-600 hover:text-indigo-600">Profile</a>
+                </div>
+                <!-- Notifications and Logout -->
+                <div class="flex items-center">
+                    <div id="notification-bell">
+                        <i class="fas fa-bell fa-lg text-gray-500"></i>
+                        <span id="notification-badge">0</span>
+                    </div>
+                    <button id="logout-btn" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Notification Panel -->
+    <div id="notification-panel">
+        <div id="notification-panel-header">
+            <span>Notifications</span>
+            <button id="notification-close" style="background: none; border: none; color: white; cursor: pointer;">&times;</button>
+        </div>
+        <div id="notification-list"></div>
+        <div class="notification-actions">
+            <button id="mark-all-read">Mark All as Read</button>
+            <button id="clear-all">Clear All</button>
+        </div>
+    </div>
+
+    <!-- Main Content (Without Mobile Container) -->
+    <div class="p-4 max-w-7xl mx-auto">
+        <!-- Graphical Representation -->
+        <div class="mb-6 p-4 border rounded-xl">
+            <h2 class="font-bold text-lg text-gray-800 mb-2">Dashboard</h2>
+            
+                <canvas id="ticketChart" class="mt-4"></canvas>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative mb-4">
+            <input type="text" id="search-input" placeholder="Search" class="w-full pl-10 pr-4 py-2 border rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="absolute top-0 left-0 flex items-center h-full ml-3">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Ask Button -->
+        <button id="ask-button" class="w-full bg-green-200 text-green-800 font-semibold py-3 rounded-xl mb-6 hover:bg-green-300 transition">
+            Ask
+        </button>
+
+        <!-- Ticket List -->
+        <div id="ticket-list" class="space-y-4">
+            <!-- Tickets will be dynamically loaded here -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6 flex justify-center items-center space-x-2" id="pagination">
+            <!-- Pagination buttons will be dynamically generated -->
+        </div>
+    </div>
+
+    <!-- AI Chat Button -->
+    <div id="chat-button" title="Chat with AI Support">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </div>
+
+    <!-- AI Chat Window -->
+    <div id="chat-window">
+        <div id="chat-header">
+            <span>AI Support Bot</span>
+            <button id="chat-close" style="background: none; border: none; color: white; cursor: pointer;">&times;</button>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <input id="chat-input" type="text" placeholder="Type your question...">
+            <button id="chat-send">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Notification Function (for flash messages)
+        function showFlashNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = type;
+            notification.style.display = 'block';
+            setTimeout(() => { notification.style.display = 'none'; }, 3000);
+        }
+
+        // Check if logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'login.html';
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            showFlashNotification('Logged out successfully!');
+            setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+        });
+
+        // Load Tickets from localStorage
+        let allTickets = JSON.parse(localStorage.getItem('tickets')) || [
+            { id: '#8923', subject: 'Is it good thing to use AI for education?', status: 'Open', postedBy: 'user', timeAgo: '5d', views: '15k' },
+            { id: '#8922', subject: 'How to reset my password?', status: 'Resolved', postedBy: 'user2', timeAgo: '2d', views: '8k' }
+            // Add more sample tickets if needed
+        ];
+
+        // Calculate Data for Chart (example data; dynamic from tickets)
+        const ctx = document.getElementById('ticketChart').getContext('2d');
+        const ticketChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Technical', 'Billing', 'General', 'Feedback'],
+                datasets: [{
+                    label: 'Questions Asked',
+                    data: [12, 19, 3, 5],
+                    backgroundColor: 'rgba(59, 130, 246, 0.5)', // Blue
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Replies Sent',
+                    data: [10, 15, 2, 4],
+                    backgroundColor: 'rgba(16, 185, 129, 0.5)', // Green
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Tickets by Category'
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Ask Button Redirect
+        document.getElementById('ask-button').addEventListener('click', () => {
+            window.location.href = 'create-ticket.html';
+        });
+
+        // Pagination Settings
+        const ticketsPerPage = 5;
+        let currentPage = 1;
+
+        // Function to Render Ticket List
+        function renderTickets(page = 1) {
+            const ticketList = document.getElementById('ticket-list');
+            ticketList.innerHTML = '';
+
+            // Filter by Search
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            let filteredTickets = allTickets.filter(ticket => ticket.subject.toLowerCase().includes(searchTerm));
+
+            // Pagination Logic
+            const start = (page - 1) * ticketsPerPage;
+            const end = start + ticketsPerPage;
+            const paginatedTickets = filteredTickets.slice(start, end);
+
+            paginatedTickets.forEach(ticket => {
+                const statusColor = ticket.status === 'Open' ? 'text-orange-500 bg-orange-100' : 'text-green-500 bg-green-100';
+                ticketList.innerHTML += `
+                    <div class="p-4 border rounded-xl">
+                        <div class="flex justify-between items-start">
+                            <p class="font-semibold text-gray-800">${ticket.subject}</p>
+                            <span class="text-xs font-bold ${statusColor} px-2 py-1 rounded-full">${ticket.status}</span>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <div class="w-10 h-10 bg-gray-800 rounded-md mr-3"></div>
+                            <div class="text-xs text-gray-500">
+                                <p>Posted by ${ticket.postedBy}, ${ticket.timeAgo}, ${ticket.views}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            renderPagination(filteredTickets.length, page);
+        }
+
+        // Function to Render Pagination
+        function renderPagination(totalTickets, currentPage) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            const totalPages = Math.ceil(totalTickets / ticketsPerPage);
+
+            // Previous Button
+            pagination.innerHTML += `<a href="#" class="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50" data-page="${currentPage - 1}" ${currentPage === 1 ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>&lt;</a>`;
+
+            // Page Numbers (show 1,2,3,...,11 as in code)
+            for (let i = 1; i <= Math.min(3, totalPages); i++) {
+                pagination.innerHTML += `<a href="#" class="px-3 py-1 border rounded-md text-sm ${i === currentPage ? 'bg-indigo-500 text-white' : 'bg-white hover:bg-gray-50'}" data-page="${i}">${i}</a>`;
+            }
+            if (totalPages > 3) {
+                pagination.innerHTML += `<span class="px-3 py-1 text-sm">...</span>`;
+                pagination.innerHTML += `<a href="#" class="px-3 py-1 border rounded-md text-sm ${totalPages === currentPage ? 'bg-indigo-500 text-white' : 'bg-white hover:bg-gray-50'}" data-page="${totalPages}">${totalPages}</a>`;
+            }
+
+            // Next Button
+            pagination.innerHTML += `<a href="#" class="px-3 py-1 border rounded-md text-sm bg-white hover:bg-gray-50" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>&gt;</a>`;
+        }
+
+        // Pagination Click Handler
+        document.getElementById('pagination').addEventListener('click', (e) => {
+            if (e.target.dataset.page) {
+                const page = parseInt(e.target.dataset.page);
+                if (page > 0) {
+                    currentPage = page;
+                    renderTickets(currentPage);
+                }
+            }
+            e.preventDefault();
+        });
+
+        // Search Input Handler
+        document.getElementById('search-input').addEventListener('input', () => {
+            currentPage = 1;
+            renderTickets(currentPage);
+        });
+
+        // Initial Render
+        renderTickets(currentPage);
+
+        // AI Chat Functionality (integrated from previous)
+        const chatButton = document.getElementById('chat-button');
+        const chatWindow = document.getElementById('chat-window');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSend = document.getElementById('chat-send');
+        const chatClose = document.getElementById('chat-close');
+
+        // Toggle Chat Window
+        chatButton.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'flex' ? 'none' : 'flex';
+            if (chatMessages.innerHTML === '') {
+                addMessage('bot', 'Hello! I\'m the AI Support Bot. How can I help you with your dashboard?');
+            }
+        });
+
+        chatClose.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+
+        // Send Message
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                chatInput.value = '';
+                setTimeout(() => {
+                    const response = getBotResponse(message);
+                    addMessage('bot', response);
+                }, 500);
+            }
+        }
+
+        chatSend.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Add Message to Chat
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.textContent = text;
+            const timestamp = document.createElement('div');
+            timestamp.classList.add('timestamp');
+            timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            messageDiv.appendChild(timestamp);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Bot Responses
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('hi') || lowerMessage.includes('hello')) {
+                return 'Hello! How can I assist you?';
+            } else {
+                return 'Sorry, I didn\'t understand that.';
+            }
+        }
+
+        // Notification Center Functionality (integrated from previous)
+        const notificationBell = document.getElementById('notification-bell');
+        const notificationBadge = document.getElementById('notification-badge');
+        const notificationPanel = document.getElementById('notification-panel');
+        const notificationList = document.getElementById('notification-list');
+        const markAllRead = document.getElementById('mark-all-read');
+        const clearAll = document.getElementById('clear-all');
+        const notificationClose = document.getElementById('notification-close');
+
+        // Load Notifications from localStorage
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+
+        // Function to add a notification
+        function addNotification(message) {
+            const newNotif = {
+                id: Date.now(),
+                message,
+                timestamp: new Date().toLocaleString(),
+                read: false
+            };
+            notifications.unshift(newNotif);
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationPanel();
+            updateBadge();
+        }
+
+        // Function to render notifications
+        function renderNotifications() {
+            notificationList.innerHTML = '';
+            notifications.forEach(notif => {
+                const notifDiv = document.createElement('div');
+                notifDiv.classList.add('notification-item', notif.read ? 'read' : 'unread');
+                notifDiv.innerHTML = `
+                    <p>${notif.message}</p>
+                    <small>${notif.timestamp}</small>
+                    <button class="mark-read" data-id="${notif.id}" style="font-size: 12px; color: #6366f1; background: none; border: none; cursor: pointer;">Mark as Read</button>
+                `;
+                notificationList.appendChild(notifDiv);
+            });
+        }
+
+        // Update Panel and Badge
+        function updateNotificationPanel() {
+            renderNotifications();
+        }
+
+        function updateBadge() {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            notificationBadge.textContent = unreadCount;
+            notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        }
+
+        // Toggle Panel
+        notificationBell.addEventListener('click', () => {
+            notificationPanel.style.display = notificationPanel.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        notificationClose.addEventListener('click', () => {
+            notificationPanel.style.display = 'none';
+        });
+
+        // Mark All as Read
+        markAllRead.addEventListener('click', () => {
+            notifications = notifications.map(n => ({ ...n, read: true }));
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationPanel();
+            updateBadge();
+        });
+
+        // Clear All
+        clearAll.addEventListener('click', () => {
+            notifications = [];
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+            updateNotificationPanel();
+            updateBadge();
+        });
+
+        // Mark Individual as Read
+        notificationList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('mark-read')) {
+                const id = parseInt(e.target.dataset.id);
+                notifications = notifications.map(n => n.id === id ? { ...n, read: true } : n);
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+                updateNotificationPanel();
+                updateBadge();
+            }
+        });
+
+        // Initial Setup
+        updateNotificationPanel();
+        updateBadge();
+
+        // Add Dashboard Notification on Load
+        addNotification('Welcome to the Admin Dashboard!');
+    </script>
+
+</body>
+</html>
